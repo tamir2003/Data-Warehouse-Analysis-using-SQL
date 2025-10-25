@@ -44,9 +44,6 @@ Date range checks for historical coverage.
 Total Sales, Total Quantity, Total Orders, Total Customers, Average Price.
 Business KPI snapshot query (all measures in a single output).
 
-<img width="658" height="277" alt="Screenshot 2025-10-25 172701" src="https://github.com/user-attachments/assets/65b3302f-5ab8-4940-bdd6-df78051185cb" />
-
-
 **3. Magnitude Analysis**
 
 Customers by country & gender.
@@ -60,13 +57,6 @@ Bottom 5 worst-performing products.
 Top 10 customers by revenue.
 Customers with fewest orders.
 
-<img width="539" height="482" alt="Screenshot 2025-10-25 172822" src="https://github.com/user-attachments/assets/811cbd26-e6da-4556-8c26-393cbb1ebe08" />
-
-<img width="539" height="482" alt="Screenshot 2025-10-25 172858" src="https://github.com/user-attachments/assets/6c7a259a-75d9-48e5-ba19-46f7dfd45b17" />
-
-<img width="539" height="482" alt="Screenshot 2025-10-25 172912" src="https://github.com/user-attachments/assets/ca8ba341-4905-4178-aba9-ea33da9c6bba" />
-
-
 
 **5. Time-Series Analysis**
 
@@ -74,21 +64,10 @@ Sales trends by year/month.
 Cumulative running totals & moving averages.
 Year-over-Year (YoY) growth using LAG().
 
-<img width="526" height="360" alt="Screenshot 2025-10-25 173049" src="https://github.com/user-attachments/assets/1e882227-0f91-4129-9da0-00a77de526eb" />
-
-<img width="526" height="360" alt="Screenshot 2025-10-25 173113" src="https://github.com/user-attachments/assets/5fc0cbd1-0c4d-43bc-8105-f4e95fc2d263" />
-
-
-
 **6. Segmentation**
    
 Product segmentation by cost range.
 Customer segmentation: VIP, Regular, New based on lifespan & spending.
-
-<img width="746" height="439" alt="Screenshot 2025-10-25 173202" src="https://github.com/user-attachments/assets/768870dd-06b2-4a58-81ef-363ac669bb93" />
-
-<img width="746" height="439" alt="Screenshot 2025-10-25 173249" src="https://github.com/user-attachments/assets/72b9a271-94a8-42d3-9835-99b5b823b709" />
-
 
 
 **7. Part-to-Whole Analysis**
