@@ -1,18 +1,34 @@
-/*
+/*===============================================================================
+🌟 DATABASE EXPLORATION & INSIGHTS SCRIPT
 ===============================================================================
-Database Exploration
+📘 Purpose:
+    - Explore database structure, schemas, and metadata.
+    - Analyze key dimensions, measures, and data distributions.
+    - Identify top-performing entities and overall business metrics.
+
+📂 Schema:
+    - gold.dim_customers
+    - gold.dim_products
+    - gold.fact_sales
+
+📊 Topics Covered:
+    1️⃣ Database Exploration  
+    2️⃣ Dimensions Exploration  
+    3️⃣ Date Range Exploration  
+    4️⃣ Measures Exploration  
+    5️⃣ Magnitude Analysis  
+    6️⃣ Ranking Analysis
+===============================================================================*/
+
+
+/*===============================================================================
+1️⃣ DATABASE EXPLORATION
 ===============================================================================
 Purpose:
-    - To explore the structure of the database, including the list of tables and their schemas.
-    - To inspect the columns and metadata for specific tables.
+    - To explore the structure of the database, including table lists and columns.
+===============================================================================*/
 
-Table Used:
-    - INFORMATION_SCHEMA.TABLES
-    - INFORMATION_SCHEMA.COLUMNS
-===============================================================================
-*/
-
--- Retrieve a list of all tables in the database
+-- 🔍 Retrieve a list of all tables in the database
 SELECT 
     TABLE_CATALOG, 
     TABLE_SCHEMA, 
@@ -20,7 +36,7 @@ SELECT
     TABLE_TYPE
 FROM INFORMATION_SCHEMA.TABLES;
 
--- Retrieve all columns for a specific table (dim_customers)
+-- 🧱 Retrieve all columns for a specific table (dim_customers)
 SELECT 
     COLUMN_NAME, 
     DATA_TYPE, 
@@ -29,7 +45,7 @@ SELECT
 FROM INFORMATION_SCHEMA.COLUMNS
 WHERE TABLE_NAME = 'dim_customers';
 
--- Retrieve all columns for a specific table (facts_sales)
+-- 🧱 Retrieve all columns for a specific table (fact_sales)
 SELECT 
     COLUMN_NAME, 
     DATA_TYPE, 
@@ -38,7 +54,7 @@ SELECT
 FROM INFORMATION_SCHEMA.COLUMNS
 WHERE TABLE_NAME = 'fact_sales';
 
--- Retrieve all columns for a specific table (dim_products)
+-- 🧱 Retrieve all columns for a specific table (dim_products)
 SELECT 
     COLUMN_NAME, 
     DATA_TYPE, 
@@ -48,26 +64,20 @@ FROM INFORMATION_SCHEMA.COLUMNS
 WHERE TABLE_NAME = 'dim_products';
 
 
-/*
-===============================================================================
-Dimensions Exploration
+/*===============================================================================
+2️⃣ DIMENSIONS EXPLORATION
 ===============================================================================
 Purpose:
-    - To explore the structure of dimension tables.
-	
-SQL Functions Used:
-    - DISTINCT
-    - ORDER BY
-===============================================================================
-*/
+    - To explore the structure and distinct values of dimension tables.
+===============================================================================*/
 
--- Retrieve a list of unique countries from which customers originate
+-- 🌍 Unique customer countries
 SELECT DISTINCT 
     country 
 FROM gold.dim_customers
 ORDER BY country;
 
--- Retrieve a list of unique categories, subcategories, and products
+-- 🏷️ Unique product categories, subcategories, and product names
 SELECT DISTINCT 
     category, 
     subcategory, 
@@ -75,27 +85,22 @@ SELECT DISTINCT
 FROM gold.dim_products
 ORDER BY category, subcategory, product_name;
 
-/*
-===============================================================================
-Date Range Exploration 
+
+/*===============================================================================
+3️⃣ DATE RANGE EXPLORATION
 ===============================================================================
 Purpose:
     - To determine the temporal boundaries of key data points.
-    - To understand the range of historical data.
+===============================================================================*/
 
-SQL Functions Used:
-    - MIN(), MAX(), DATEDIFF()
-===============================================================================
-*/
-
--- Determine the first and last order date and the total duration in months
+-- ⏳ First and last order date, and total range in months
 SELECT 
     MIN(order_date) AS first_order_date,
     MAX(order_date) AS last_order_date,
     DATEDIFF(MONTH, MIN(order_date), MAX(order_date)) AS order_range_months
 FROM gold.fact_sales;
 
--- Find the youngest and oldest customer based on birthdate
+-- 👶 Youngest and oldest customer based on birthdate
 SELECT
     MIN(birthdate) AS oldest_birthdate,
     DATEDIFF(YEAR, MIN(birthdate), GETDATE()) AS oldest_age,
@@ -103,42 +108,36 @@ SELECT
     DATEDIFF(YEAR, MAX(birthdate), GETDATE()) AS youngest_age
 FROM gold.dim_customers;
 
-/*
-===============================================================================
-Measures Exploration (Key Metrics)
+
+/*===============================================================================
+4️⃣ MEASURES EXPLORATION (KEY METRICS)
 ===============================================================================
 Purpose:
-    - To calculate aggregated metrics (e.g., totals, averages) for quick insights.
-    - To identify overall trends or spot anomalies.
+    - To calculate aggregated metrics and gain quick business insights.
+===============================================================================*/
 
-SQL Functions Used:
-    - COUNT(), SUM(), AVG()
-===============================================================================
-*/
+-- 💰 Total Sales
+SELECT SUM(sales_amount) AS total_sales FROM gold.fact_sales;
 
--- Find the Total Sales
-SELECT SUM(sales_amount) AS total_sales FROM gold.fact_sales
+-- 📦 Total Quantity Sold
+SELECT SUM(quantity) AS total_quantity FROM gold.fact_sales;
 
--- Find how many items are sold
-SELECT SUM(quantity) AS total_quantity FROM gold.fact_sales
+-- 💵 Average Selling Price
+SELECT AVG(price) AS avg_price FROM gold.fact_sales;
 
--- Find the average selling price
-SELECT AVG(price) AS avg_price FROM gold.fact_sales
+-- 🧾 Total Orders
+SELECT COUNT(DISTINCT order_number) AS total_orders FROM gold.fact_sales;
 
--- Find the Total number of Orders
-SELECT COUNT(order_number) AS total_orders FROM gold.fact_sales
-SELECT COUNT(DISTINCT order_number) AS total_orders FROM gold.fact_sales
+-- 🧩 Total Products
+SELECT COUNT(DISTINCT product_name) AS total_products FROM gold.dim_products;
 
--- Find the total number of products
-SELECT COUNT(product_name) AS total_products FROM gold.dim_products
-
--- Find the total number of customers
+-- 👥 Total Customers
 SELECT COUNT(customer_key) AS total_customers FROM gold.dim_customers;
 
--- Find the total number of customers that has placed an order
-SELECT COUNT(DISTINCT customer_key) AS total_customers FROM gold.fact_sales;
+-- 🛍️ Total Customers Who Placed Orders
+SELECT COUNT(DISTINCT customer_key) AS total_customers_with_orders FROM gold.fact_sales;
 
--- Generate a Report that shows all key metrics of the business
+-- 📈 Combined Business Metrics Report
 SELECT 'Total Sales' AS measure_name, SUM(sales_amount) AS measure_value FROM gold.fact_sales
 UNION ALL
 SELECT 'Total Quantity', SUM(quantity) FROM gold.fact_sales
@@ -152,21 +151,14 @@ UNION ALL
 SELECT 'Total Customers', COUNT(customer_key) FROM gold.dim_customers;
 
 
-/*
-===============================================================================
-Magnitude Analysis
+/*===============================================================================
+5️⃣ MAGNITUDE ANALYSIS
 ===============================================================================
 Purpose:
-    - To quantify data and group results by specific dimensions.
-    - For understanding data distribution across categories.
+    - To quantify and compare data across categories and dimensions.
+===============================================================================*/
 
-SQL Functions Used:
-    - Aggregate Functions: SUM(), COUNT(), AVG()
-    - GROUP BY, ORDER BY
-===============================================================================
-*/
-
--- Find total customers by countries
+-- 🌎 Total Customers by Country
 SELECT
     country,
     COUNT(customer_key) AS total_customers
@@ -174,7 +166,7 @@ FROM gold.dim_customers
 GROUP BY country
 ORDER BY total_customers DESC;
 
--- Find total customers by gender
+-- 🚻 Total Customers by Gender
 SELECT
     gender,
     COUNT(customer_key) AS total_customers
@@ -182,7 +174,7 @@ FROM gold.dim_customers
 GROUP BY gender
 ORDER BY total_customers DESC;
 
--- Find total products by category
+-- 🏷️ Total Products by Category
 SELECT
     category,
     COUNT(product_key) AS total_products
@@ -190,7 +182,7 @@ FROM gold.dim_products
 GROUP BY category
 ORDER BY total_products DESC;
 
--- What is the average costs in each category?
+-- 💸 Average Cost per Category
 SELECT
     category,
     AVG(cost) AS avg_cost
@@ -198,7 +190,7 @@ FROM gold.dim_products
 GROUP BY category
 ORDER BY avg_cost DESC;
 
--- What is the total revenue generated for each category?
+-- 💰 Total Revenue by Category
 SELECT
     p.category,
     SUM(f.sales_amount) AS total_revenue
@@ -208,8 +200,7 @@ LEFT JOIN gold.dim_products p
 GROUP BY p.category
 ORDER BY total_revenue DESC;
 
-
--- What is the total revenue generated by each customer?
+-- 👤 Total Revenue by Customer
 SELECT
     c.customer_key,
     c.first_name,
@@ -224,7 +215,7 @@ GROUP BY
     c.last_name
 ORDER BY total_revenue DESC;
 
--- What is the distribution of sold items across countries?
+-- 📦 Distribution of Sold Items by Country
 SELECT
     c.country,
     SUM(f.quantity) AS total_sold_items
@@ -234,22 +225,15 @@ LEFT JOIN gold.dim_customers c
 GROUP BY c.country
 ORDER BY total_sold_items DESC;
 
-/*
-===============================================================================
-Ranking Analysis
+
+/*===============================================================================
+6️⃣ RANKING ANALYSIS
 ===============================================================================
 Purpose:
-    - To rank items (e.g., products, customers) based on performance or other metrics.
-    - To identify top performers or laggards.
+    - To rank products, customers, and other entities based on performance.
+===============================================================================*/
 
-SQL Functions Used:
-    - Window Ranking Functions: RANK(), DENSE_RANK(), ROW_NUMBER(), TOP
-    - Clauses: GROUP BY, ORDER BY
-===============================================================================
-*/
-
--- Which 5 products Generating the Highest Revenue?
--- Simple Ranking
+-- 🥇 Top 5 Products by Highest Revenue
 SELECT TOP 5
     p.product_name,
     SUM(f.sales_amount) AS total_revenue
@@ -259,7 +243,7 @@ LEFT JOIN gold.dim_products p
 GROUP BY p.product_name
 ORDER BY total_revenue DESC;
 
--- Complex but Flexibly Ranking Using Window Functions
+-- 🧮 Ranking Products Using Window Functions
 SELECT *
 FROM (
     SELECT
@@ -273,7 +257,7 @@ FROM (
 ) AS ranked_products
 WHERE rank_products <= 5;
 
--- What are the 5 worst-performing products in terms of sales?
+-- 🧾 Bottom 5 Products (Lowest Revenue)
 SELECT TOP 5
     p.product_name,
     SUM(f.sales_amount) AS total_revenue
@@ -281,9 +265,9 @@ FROM gold.fact_sales f
 LEFT JOIN gold.dim_products p
     ON p.product_key = f.product_key
 GROUP BY p.product_name
-ORDER BY total_revenue;
+ORDER BY total_revenue ASC;
 
--- Find the top 10 customers who have generated the highest revenue
+-- 💎 Top 10 Customers by Total Revenue
 SELECT TOP 10
     c.customer_key,
     c.first_name,
@@ -298,7 +282,7 @@ GROUP BY
     c.last_name
 ORDER BY total_revenue DESC;
 
--- The 3 customers with the fewest orders placed
+-- 🧍‍♂️ Bottom 3 Customers (Fewest Orders)
 SELECT TOP 3
     c.customer_key,
     c.first_name,
@@ -311,4 +295,4 @@ GROUP BY
     c.customer_key,
     c.first_name,
     c.last_name
-ORDER BY total_orders ;
+ORDER BY total_orders ASC;
