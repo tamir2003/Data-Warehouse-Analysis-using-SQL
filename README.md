@@ -77,10 +77,16 @@ Contribution of each category to total sales (% share).
 **1. Customer Report (report_customers)**
 
 Includes customer profile, age group, segment, total sales, total orders, recency, average order value, and monthly spend.
+<img width="1366" height="768" alt="Screenshot (50)" src="https://github.com/user-attachments/assets/be54b444-badb-498b-a279-d76fbe70b2cf" />
+
 
 **2. Product Report (report_products)**
 
 Includes product details, total sales, total orders, average selling price, revenue segment (High/Mid/Low performer), recency, and monthly revenue.
+<img width="1366" height="768" alt="Screenshot (51)" src="https://github.com/user-attachments/assets/e499926e-bec8-440b-8f0f-a7f0bf8bb2e0" />
+<img width="1366" height="768" alt="Screenshot (55)" src="https://github.com/user-attachments/assets/f4aa88aa-db3e-42a6-88ad-1a510b1126a0" />
+
+
 
 **📊 Key Insights**
 
