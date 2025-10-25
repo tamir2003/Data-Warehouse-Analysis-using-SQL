@@ -1,20 +1,31 @@
 /*
 ===============================================================================
-Change Over Time Analysis
+📈 DATA WAREHOUSE ANALYSIS USING SQL
 ===============================================================================
-Purpose:
-    - To track trends, growth, and changes in key metrics over time.
-    - For time-series analysis and identifying seasonality.
-    - To measure growth or decline over specific periods.
 
-SQL Functions Used:
-    - Date Functions: DATEPART(), DATETRUNC(), FORMAT()
-    - Aggregate Functions: SUM(), COUNT(), AVG()
+    Comprehensive SQL analysis covering:
+        - Change Over Time
+        - Cumulative Growth
+        - Performance Comparison (YoY, MoM)
+        - Data Segmentation
+        - Part-to-Whole Contribution
 ===============================================================================
 */
 
--- Analyse sales performance over time
--- Quick Date Functions
+-------------------------------------------------------------------------------
+-- 🕒 CHANGE OVER TIME ANALYSIS
+-------------------------------------------------------------------------------
+/*
+Purpose:
+    ▪ Track trends, growth, and changes in key metrics over time.
+    ▪ Identify seasonality and time-based patterns.
+    ▪ Measure growth or decline across specific periods.
+
+SQL Functions Used:
+    DATEPART(), DATETRUNC(), FORMAT(), SUM(), COUNT(), AVG()
+*/
+
+-- 1️⃣ Sales Performance by Year and Month
 SELECT
     YEAR(order_date) AS order_year,
     MONTH(order_date) AS order_month,
@@ -26,7 +37,7 @@ WHERE order_date IS NOT NULL
 GROUP BY YEAR(order_date), MONTH(order_date)
 ORDER BY YEAR(order_date), MONTH(order_date);
 
--- DATETRUNC()
+-- 2️⃣ Using DATETRUNC() for monthly aggregation
 SELECT
     DATETRUNC(month, order_date) AS order_date,
     SUM(sales_amount) AS total_sales,
@@ -37,7 +48,7 @@ WHERE order_date IS NOT NULL
 GROUP BY DATETRUNC(month, order_date)
 ORDER BY DATETRUNC(month, order_date);
 
--- FORMAT()
+-- 3️⃣ Using FORMAT() for formatted date output
 SELECT
     FORMAT(order_date, 'yyyy-MMM') AS order_date,
     SUM(sales_amount) AS total_sales,
@@ -48,29 +59,26 @@ WHERE order_date IS NOT NULL
 GROUP BY FORMAT(order_date, 'yyyy-MMM')
 ORDER BY FORMAT(order_date, 'yyyy-MMM');
 
+-------------------------------------------------------------------------------
+-- 📊 CUMULATIVE ANALYSIS
+-------------------------------------------------------------------------------
 /*
-===============================================================================
-Cumulative Analysis
-===============================================================================
 Purpose:
-    - To calculate running totals or moving averages for key metrics.
-    - To track performance over time cumulatively.
-    - Useful for growth analysis or identifying long-term trends.
+    ▪ Calculate running totals and moving averages.
+    ▪ Track cumulative performance over time.
+    ▪ Identify long-term growth and patterns.
 
 SQL Functions Used:
-    - Window Functions: SUM() OVER(), AVG() OVER()
-===============================================================================
+    SUM() OVER(), AVG() OVER()
 */
 
--- Calculate the total sales per month 
--- and the running total of sales over time 
+-- Running total and moving average of sales over time
 SELECT
-	order_date,
-	total_sales,
-	SUM(total_sales) OVER (ORDER BY order_date) AS running_total_sales,
-	AVG(avg_price) OVER (ORDER BY order_date) AS moving_average_price
-FROM
-(
+    order_date,
+    total_sales,
+    SUM(total_sales) OVER (ORDER BY order_date) AS running_total_sales,
+    AVG(avg_price) OVER (ORDER BY order_date) AS moving_average_price
+FROM (
     SELECT 
         DATETRUNC(year, order_date) AS order_date,
         SUM(sales_amount) AS total_sales,
@@ -78,39 +86,31 @@ FROM
     FROM gold.fact_sales
     WHERE order_date IS NOT NULL
     GROUP BY DATETRUNC(year, order_date)
-) t
+) AS t;
 
-
+-------------------------------------------------------------------------------
+-- 📆 PERFORMANCE ANALYSIS (YoY / MoM)
+-------------------------------------------------------------------------------
 /*
-===============================================================================
-Performance Analysis (Year-over-Year, Month-over-Month)
-===============================================================================
 Purpose:
-    - To measure the performance of products, customers, or regions over time.
-    - For benchmarking and identifying high-performing entities.
-    - To track yearly trends and growth.
+    ▪ Compare product performance across years.
+    ▪ Identify high-performing products and yearly growth.
+    ▪ Benchmark against average performance.
 
 SQL Functions Used:
-    - LAG(): Accesses data from previous rows.
-    - AVG() OVER(): Computes average values within partitions.
-    - CASE: Defines conditional logic for trend analysis.
-===============================================================================
+    LAG(), AVG() OVER(), CASE
 */
 
-/* Analyze the yearly performance of products by comparing their sales 
-to both the average sales performance of the product and the previous year's sales */
 WITH yearly_product_sales AS (
     SELECT
         YEAR(f.order_date) AS order_year,
         p.product_name,
         SUM(f.sales_amount) AS current_sales
-    FROM gold.fact_sales f
-    LEFT JOIN gold.dim_products p
+    FROM gold.fact_sales AS f
+    LEFT JOIN gold.dim_products AS p
         ON f.product_key = p.product_key
     WHERE f.order_date IS NOT NULL
-    GROUP BY 
-        YEAR(f.order_date),
-        p.product_name
+    GROUP BY YEAR(f.order_date), p.product_name
 )
 SELECT
     order_year,
@@ -119,37 +119,34 @@ SELECT
     AVG(current_sales) OVER (PARTITION BY product_name) AS avg_sales,
     current_sales - AVG(current_sales) OVER (PARTITION BY product_name) AS diff_avg,
     CASE 
-        WHEN current_sales - AVG(current_sales) OVER (PARTITION BY product_name) > 0 THEN 'Above Avg'
-        WHEN current_sales - AVG(current_sales) OVER (PARTITION BY product_name) < 0 THEN 'Below Avg'
+        WHEN current_sales > AVG(current_sales) OVER (PARTITION BY product_name) THEN 'Above Avg'
+        WHEN current_sales < AVG(current_sales) OVER (PARTITION BY product_name) THEN 'Below Avg'
         ELSE 'Avg'
     END AS avg_change,
-    -- Year-over-Year Analysis
     LAG(current_sales) OVER (PARTITION BY product_name ORDER BY order_year) AS py_sales,
     current_sales - LAG(current_sales) OVER (PARTITION BY product_name ORDER BY order_year) AS diff_py,
     CASE 
-        WHEN current_sales - LAG(current_sales) OVER (PARTITION BY product_name ORDER BY order_year) > 0 THEN 'Increase'
-        WHEN current_sales - LAG(current_sales) OVER (PARTITION BY product_name ORDER BY order_year) < 0 THEN 'Decrease'
+        WHEN current_sales > LAG(current_sales) OVER (PARTITION BY product_name ORDER BY order_year) THEN 'Increase'
+        WHEN current_sales < LAG(current_sales) OVER (PARTITION BY product_name ORDER BY order_year) THEN 'Decrease'
         ELSE 'No Change'
     END AS py_change
 FROM yearly_product_sales
 ORDER BY product_name, order_year;
 
+-------------------------------------------------------------------------------
+-- 👥 DATA SEGMENTATION ANALYSIS
+-------------------------------------------------------------------------------
 /*
-===============================================================================
-Data Segmentation Analysis
-===============================================================================
 Purpose:
-    - To group data into meaningful categories for targeted insights.
-    - For customer segmentation, product categorization, or regional analysis.
+    ▪ Group data into meaningful categories for better insights.
+    ▪ Identify customer and product segments for targeting.
+    ▪ Evaluate distribution across segments.
 
 SQL Functions Used:
-    - CASE: Defines custom segmentation logic.
-    - GROUP BY: Groups data into segments.
-===============================================================================
+    CASE, GROUP BY
 */
 
-/*Segment products into cost ranges and 
-count how many products fall into each segment*/
+-- 🧾 Product Segmentation by Cost Range
 WITH product_segments AS (
     SELECT
         product_key,
@@ -170,12 +167,7 @@ FROM product_segments
 GROUP BY cost_range
 ORDER BY total_products DESC;
 
-/*Group customers into three segments based on their spending behavior:
-	- VIP: Customers with at least 12 months of history and spending more than €5,000.
-	- Regular: Customers with at least 12 months of history but spending €5,000 or less.
-	- New: Customers with a lifespan less than 12 months.
-And find the total number of customers by each group
-*/
+-- 👤 Customer Segmentation by Spending Behavior
 WITH customer_spending AS (
     SELECT
         c.customer_key,
@@ -183,8 +175,8 @@ WITH customer_spending AS (
         MIN(order_date) AS first_order,
         MAX(order_date) AS last_order,
         DATEDIFF(month, MIN(order_date), MAX(order_date)) AS lifespan
-    FROM gold.fact_sales f
-    LEFT JOIN gold.dim_customers c
+    FROM gold.fact_sales AS f
+    LEFT JOIN gold.dim_customers AS c
         ON f.customer_key = c.customer_key
     GROUP BY c.customer_key
 )
@@ -204,28 +196,24 @@ FROM (
 GROUP BY customer_segment
 ORDER BY total_customers DESC;
 
-
+-------------------------------------------------------------------------------
+-- 🧩 PART-TO-WHOLE ANALYSIS
+-------------------------------------------------------------------------------
 /*
-===============================================================================
-Part-to-Whole Analysis
-===============================================================================
 Purpose:
-    - To compare performance or metrics across dimensions or time periods.
-    - To evaluate differences between categories.
-    - Useful for A/B testing or regional comparisons.
+    ▪ Compare contribution of each category to total sales.
+    ▪ Understand dominant product categories and their share.
 
 SQL Functions Used:
-    - SUM(), AVG(): Aggregates values for comparison.
-    - Window Functions: SUM() OVER() for total calculations.
-===============================================================================
+    SUM(), AVG(), SUM() OVER()
 */
--- Which categories contribute the most to overall sales?
+
 WITH category_sales AS (
     SELECT
         p.category,
         SUM(f.sales_amount) AS total_sales
-    FROM gold.fact_sales f
-    LEFT JOIN gold.dim_products p
+    FROM gold.fact_sales AS f
+    LEFT JOIN gold.dim_products AS p
         ON p.product_key = f.product_key
     GROUP BY p.category
 )
@@ -236,3 +224,7 @@ SELECT
     ROUND((CAST(total_sales AS FLOAT) / SUM(total_sales) OVER ()) * 100, 2) AS percentage_of_total
 FROM category_sales
 ORDER BY total_sales DESC;
+
+-------------------------------------------------------------------------------
+-- ✅ END OF SCRIPT
+-------------------------------------------------------------------------------
